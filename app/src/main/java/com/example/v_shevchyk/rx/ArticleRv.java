@@ -22,7 +22,7 @@ public class ArticleRv extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<ArticleModel> articleModels  = new ArrayList<>();
     private Context context;
 
-    public ArticleRv(ArrayList<ArticleModel> articleModels, Context context) {
+    public ArticleRv(List<ArticleModel> articleModels, Context context) {
         this.articleModels = articleModels;
         this.context = context;
     }

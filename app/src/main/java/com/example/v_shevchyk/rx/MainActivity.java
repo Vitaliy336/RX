@@ -5,9 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.util.TimeUtils;
-import android.widget.LinearLayout;
 
 import com.example.v_shevchyk.rx.model.ArticleModel;
 
@@ -16,9 +13,12 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
@@ -44,28 +44,44 @@ public class MainActivity extends AppCompatActivity {
         new RepositoryImpl().getArticles("https://www.instructables.com/technology/")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ArrayList<ArticleModel>>() {
+                .flatMap(new Function<ArrayList<ArticleModel>, ObservableSource<ArticleModel>>() {
+                    @Override
+                    public ObservableSource<ArticleModel> apply(ArrayList<ArticleModel> articleModels) throws Exception {
+                        return Observable.fromIterable(articleModels);
+                    }
+                })
+                .filter(new Predicate<ArticleModel>() {
+                    @Override
+                    public boolean test(ArticleModel articleModel) throws Exception {
+                        return articleModel.getName().startsWith("W");
+                    }
+                })
+                .toList()
+                .toObservable()
+                .subscribe(new Observer<List<ArticleModel>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
-                        disposable = d;
+
                     }
 
                     @Override
-                    public void onNext(ArrayList<ArticleModel> articleModels) {
+                    public void onNext(List<ArticleModel> articleModels) {
                         ArticleRv articleRv = new ArticleRv(articleModels, MainActivity.this);
                         posts.setAdapter(articleRv);
+
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        e.printStackTrace();
+
                     }
 
                     @Override
                     public void onComplete() {
-                        Log.e(TAG, "END");
+
                     }
                 });
+
     }
 
 
